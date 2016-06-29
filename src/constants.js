@@ -1,3 +1,4 @@
+'use strict'
 module.exports = {
   UP: 1,
   RIGHT: 2,

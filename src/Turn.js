@@ -1,3 +1,4 @@
+'use strict'
 const C = require('./constants.js')
 var clone = require('clone')
 function oppositeDir (dir) {
@@ -8,6 +9,26 @@ function oppositeDir (dir) {
     case C.RIGHT: return C.LEFT
   }
 }
+/*
+function getPos (board, i, j) {
+  if (i < 0 | i >= board.length | j < 0 | j >= board[0].length) return undefined
+  else return board[i][j]
+}
+function eraseTrail (board, id, i, j) {
+  if (getPos(board, i - 1, j) === id) {
+    board[i - 1][j] = 0
+    eraseTrail(board, id, i - 1, j)
+  } if (getPos(board, i + 1, j) === id) {
+    board[i + 1][j] = 0
+    eraseTrail(board, id, i + 1, j)
+  } if (getPos(board, i, j - 1) === id) {
+    board[i][j - 1] = 0
+    eraseTrail(board, id, i, j - 1)
+  } if (getPos(board, i, j + 1) === id) {
+    board[i][j + 1] = 0
+    eraseTrail(board, id, i, j + 1)
+  }
+} */
 class Turn {
   constructor (board, bikes, inputs) {
     this.board = board
@@ -44,7 +65,7 @@ class Turn {
             killMask[j] = true
           }
         }
-        if (nwbikes[i].i < 0 | nwbikes[i].i >= nwboard.length | nwbikes[i].j < 0 | nwbikes[i].i >= nwboard[0].length) {
+        if (nwbikes[i].i < 0 | nwbikes[i].i >= nwboard.length | nwbikes[i].j < 0 | nwbikes[i].j >= nwboard[0].length) {
           killMask[i] = true
         } else if (nwboard[nwbikes[i].i][nwbikes[i].j] !== 0) {
           killMask[i] = true
@@ -52,7 +73,8 @@ class Turn {
         if (!killMask[i]) nwboard[nwbikes[i].i][nwbikes[i].j] = i + 1
       }
     }
-    for (let i = 0; i < nwboard.length; i++) {
+
+    for (let i = 0; i < nwboard.length; i++) { // use dfs??
       for (let j = 0; j < nwboard[0].length; j++) {
         if (nwboard[i][j] !== 0) {
           if (killMask[nwboard[i][j] - 1]) nwboard[i][j] = 0
@@ -60,7 +82,11 @@ class Turn {
       }
     }
     for (let i = 0; i < nwbikes.length; i++) {
-      if (killMask[i]) nwbikes[i].alive = false
+      if (killMask[i]) {
+        nwbikes[i].alive = false
+        // new erase bikes
+        // eraseTrail(this.board, i + 1, nwbikes[i].i, nwbikes[i].j)
+      }
     }
     return new Turn(nwboard, nwbikes, nwinputs)
   }
