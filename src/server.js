@@ -1,16 +1,30 @@
-const server = require('http').createServer()
-const io = require('socket.io')(server)
-const PORT = 3000
+const express = require('express')
+const app = express()
+const http = require('http').Server(app)
+const io = require('socket.io')(http)
+const { Game } = require('./Game.js')
 
-function onChangeDir (dir) {
-  const socket = this
-  console.log(dir)
-  socket.emit('ok')
-}
+const game = new Game()
+setInterval(game.tick.bind(game), 1000)
 
-io.on('connection', (socket) => {
-  console.log(`a socket with id ${socket.id} connected`)
-  socket.on('changeDir', onChangeDir)
+app.use(express.static('dist'))
+app.get('/', function (req, res) {
+  res.sendfile('../dist/index.html')
 })
 
-server.listen(PORT, () => console.log(`listening on ${PORT}`))
+io.on('connection', function (socket) {
+  console.log(`${socket.id} connected`)
+  game.onPlayerJoin(socket)
+
+  socket.on('changeDir', function (dir) {
+    game.onChangeDir(socket, dir)
+  })
+
+  socket.on('disconnect', function () {
+    game.onPlayerLeave(socket)
+  })
+})
+
+http.listen(3000, function () {
+  console.log('listening on *:3000')
+})

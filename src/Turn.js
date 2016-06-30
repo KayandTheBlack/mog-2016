@@ -7,28 +7,10 @@ function oppositeDir (dir) {
     case C.DOWN: return C.UP
     case C.LEFT: return C.RIGHT
     case C.RIGHT: return C.LEFT
+    default: return C.SELF_DESTRUCT
   }
 }
-/*
-function getPos (board, i, j) {
-  if (i < 0 | i >= board.length | j < 0 | j >= board[0].length) return undefined
-  else return board[i][j]
-}
-function eraseTrail (board, id, i, j) {
-  if (getPos(board, i - 1, j) === id) {
-    board[i - 1][j] = 0
-    eraseTrail(board, id, i - 1, j)
-  } if (getPos(board, i + 1, j) === id) {
-    board[i + 1][j] = 0
-    eraseTrail(board, id, i + 1, j)
-  } if (getPos(board, i, j - 1) === id) {
-    board[i][j - 1] = 0
-    eraseTrail(board, id, i, j - 1)
-  } if (getPos(board, i, j + 1) === id) {
-    board[i][j + 1] = 0
-    eraseTrail(board, id, i, j + 1)
-  }
-} */
+
 class Turn {
   constructor (board, bikes, inputs) {
     this.board = board
@@ -47,9 +29,13 @@ class Turn {
       nwinputs.push(null)
       if (this.inputs[i] !== null) {
         if (oppositeDir(this.inputs[i]) !== nwbikes[i].dir) nwbikes[i].dir = this.inputs[i]
+        if (this.inputs[i] === C.SELF_DESTRUCT) {
+          nwbikes[i].alive = false
+          killMask[i] = true
+        }
       }
       if (nwbikes[i].alive) {
-        killMask.push(false)
+        killMask[i] = false
         if (nwbikes[i].dir === C.UP) {
           nwbikes[i].i --
         } else if (nwbikes[i].dir === C.DOWN) {
