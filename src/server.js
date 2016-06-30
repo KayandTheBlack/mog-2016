@@ -5,7 +5,7 @@ const io = require('socket.io')(http)
 const { Game } = require('./Game.js')
 
 const game = new Game()
-setInterval(game.tick.bind(game), 1000)
+setInterval(game.tick.bind(game), 400)
 
 app.use(express.static('dist'))
 app.get('/', function (req, res) {
@@ -21,10 +21,12 @@ io.on('connection', function (socket) {
   })
 
   socket.on('disconnect', function () {
+    console.log(`${socket.id} disconnected`)
     game.onPlayerLeave(socket)
   })
 })
 
-http.listen(3000, function () {
-  console.log('listening on *:3000')
+const PORT = process.env.PORT || 3000
+http.listen(PORT, function () {
+  console.log(`listening on *:${PORT}`)
 })
