@@ -106,9 +106,9 @@ test('Game :: Player joins started game', (t) => {
 
   const socket3 = fakeSocket()
   game.onPlayerJoin(socket3)
-  t.notOk(boardHasCells(game.turn.board, [3]), 'player shouldnt be placed on the board')
-  t.equal(game.turn.bikes.length, 2, 'a bike should not be created')
-  t.equal(game.turn.inputs.length, 2, 'doesnt require an input')
+  t.notOk(boardHasCells(game.turn.board, [3]), 'if game has started, player shouldnt be placed on the board')
+  t.equal(game.turn.bikes.length, 2, 'if game has started, a bike should not be created')
+  t.equal(game.turn.inputs.length, 2, 'if game has started, player doesnt require an input')
   t.deepEqual(
     game.sockets.map(socket => socket.id),
     [socket, socket2, socket3].map(socket => socket.id),
@@ -230,5 +230,40 @@ test('Game :: tick', (t) => {
   game.turn.bikes.forEach(bike => { bike.alive = false })
   game.tick()
   t.equal(game.turns.length, 1, 'should reset turns array when game restarts')
+  t.equal(game.turn.bikes.length, 2, 'there should be two bikes')
+  t.ok(game.turn.bikes.every(bike => bike.alive), 'every bike should be alive')
+  t.end()
+})
+
+test('Game :: Restart with less players', (t) => {
+  const socket1 = fakeSocket()
+  const socket2 = fakeSocket()
+  const socket3 = fakeSocket()
+  const game = new Game()
+  game.onPlayerJoin(socket1)
+  game.onPlayerJoin(socket2)
+  game.onPlayerJoin(socket3)
+
+  game.tick()
+  game.turn.bikes.forEach(bike => { bike.alive = false })
+  game.onPlayerLeave(socket2)
+  game.tick()
+
+  const { turn, players, sockets } = game
+  const { bikes, inputs } = turn
+  t.deepEqual(
+    sockets.map(socket => socket && socket.id),
+    [socket1.id, null, socket3.id],
+    'should leave an empty slot in sockets array')
+  t.equal(bikes[1], null,
+    'should leave empty slot in bikes array')
+  t.equal(inputs.length, 3,
+    'inputs should leave a gap for the missing player')
+  t.deepEqual(players, {
+    [socket1.id]: 0,
+    [socket3.id]: 2
+  }, 'socket2 should no longer be in players hash')
+  t.doesNotThrow(game.tick.bind(game),
+    'it should take into account nulls in array')
   t.end()
 })
